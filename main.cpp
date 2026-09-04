@@ -1,4 +1,5 @@
 #include "src/raftnode/raftnode.hpp" 
+#include <thread>
 SOCKET connectTo(const std::string PORT){
     SOCKET ConnectSocket;
     ConnectSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
@@ -6,7 +7,7 @@ SOCKET connectTo(const std::string PORT){
         std::cout << "Error creating a connect socket" << std::endl;
         return INVALID_SOCKET;
     }
-
+    
     sockaddr_in addr{};
     addr.sin_family = AF_INET;
     addr.sin_addr.s_addr = inet_addr("127.0.0.1");
@@ -28,13 +29,15 @@ int main(){
     u_int const CLUSTER_SIZE = 4;
     std::string const PORTS[] = {"80", "81", "82", "83"};
     
-    std::vector<RaftNode> cluster = {};
-
+    std::vector<RaftNode> cluster;
+    std::vector<std::jthread> threads;
+    cluster.reserve(CLUSTER_SIZE);
+    threads.reserve(CLUSTER_SIZE);
+    
     for(int i = 0; i < CLUSTER_SIZE; ++i) {
         cluster.emplace_back(RaftNode());
-        cluster[i].start(PORTS[i]);
     }
-
+    
     //Connect the netwrok
     for(int i = 0; i < CLUSTER_SIZE; ++i){
         
@@ -47,5 +50,12 @@ int main(){
         }
     }
     
+    for(int i = 0; i < CLUSTER_SIZE; i ++){
+         threads.emplace_back(
+            std::jthread([&cluster, &PORTS, i](){
+                cluster[i].start(PORTS[i]);
+            })
+        );
+    }
     WSACleanup();
 }
