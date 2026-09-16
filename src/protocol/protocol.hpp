@@ -5,13 +5,6 @@
 /*
     Protocols are the defined rules for what type of data our raft nodse can receive.
 
-    The protcols will take inspiration from computer architecture IS formats where we will define 
-    a buffer of some amount of bytes. ASsign some amount of bytes to specific opcodes.
-
-    Protcol will receive bytes, represented as u_int.
-    These bytes will point towards some operation in our op table.
-    I will have protocol be responsible for translating the bytes. return as string maybe,
-        perform the operations after we translate.
 
     Architecture?: Socket---RecievesData(Bytes)---> ProtcolTranslation--(TranslatedMsg)--> HandleOperations -->RaftNodes.
 
@@ -19,22 +12,38 @@
 
     TODO: Write translation rules. 
           SetUp recieve data constraints.
+        
+
+    Fields              Size
+    --------------------------
+    SenderID:              4 Bits
+    Opcode:             4 bits
+
     
     Opcodes(Rough Draft):
-        - RequestVote : 0000        ; Requests data incoming query (Requires payLoad)
+    ------------------------------------------------------------
+        - RequestVote : 0000        ; Node tries to become a leader (Requires payLoad)
         - Vote Response : 0001      ; Sends back binary 1 for vote given, 0 for vote denied
-        - Send HeartBeat : 0010     ; Leader only* sends a heartbeat to followers
-        
+        - Send HeartBeat : 0010     ; Leader only* sends a heartbeat to followers (with term?)
+    ------------------------------------------------------------
+
 
     #16 bit sized buffer
 
-    #Buffer Read from right to left:  [payLodData(12bits)] [opCode (4bits)]
-    #                                      Data               operation
+    #Buffer Read from right to left:
     #Little Endian Format
+
+    #All machines understand 8 bits so 1 byte is mandatory (8 bits)
+
+    #We can do bit packing
+    #2 Bytes (Subject to change)
+    #Byte1 : 00000000; Lower 4 bits - Sender Node,  upper 4 Bits - OpCode
+    #Byte2: 00000000; Lower4bits - Argument for opCodes; Upper 4 bits - Fields.
+    #Byte3: 00000000; All 4 bits being result data.
 */
 struct RaftMessage {
-    uint8_t opCode;
-    uint16_t payload;
+    std::string operation;
+    uint32_t payload;
 };
 
 class Protocol{
@@ -55,6 +64,6 @@ class Protocol{
     public:
         Protocol();
         RaftMessage pack(char data[]);
-        char* unpack(RaftMessage& msg);
+        uint32_t unpack(RaftMessage& msg);
         ~Protocol();
 };
