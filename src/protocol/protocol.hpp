@@ -15,11 +15,13 @@
         
 
     Fields              Size
-    --------------------------
+    ---------------------------------
     SenderID:              4 Bits
     Opcode:             4 bits
-
+    Term:               24 bits (3bytes)
+    Payload:            Opcode-Defined
     
+    ---------------------------------
     Opcodes(Rough Draft):
     ------------------------------------------------------------
         - RequestVote : 0000        ; Node tries to become a leader (Requires payLoad)
@@ -28,7 +30,21 @@
     ------------------------------------------------------------
 
 
-    #16 bit sized buffer
+    Format Payload
+    ------------------------
+        RequestVote:
+            term
+            candidateId
+        
+        VoteResponse:
+            term
+            voteGranted
+        
+        Send HeartBeat:
+            term
+        
+    -----------------------
+    #1 + 3 + payLoad = Buffer Size: 4bytes + payload
 
     #Buffer Read from right to left:
     #Little Endian Format
@@ -38,8 +54,9 @@
     #We can do bit packing
     #2 Bytes (Subject to change)
     #Byte1 : 00000000; Lower 4 bits - Sender Node,  upper 4 Bits - OpCode
-    #Byte2: 00000000; Lower4bits - Argument for opCodes; Upper 4 bits - Fields.
-    #Byte3: 00000000; All 4 bits being result data.
+    #Byte 2-4: 00000000; Term
+    #Byte 5+?; 00000000; PayLoad OpCode Defined
+    
 */
 struct RaftMessage {
     std::string operation;
