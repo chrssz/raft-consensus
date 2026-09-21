@@ -5,19 +5,13 @@
 /*
     Protocols are the defined rules for what type of data our raft nodse can receive.
 
+    Keep protcol as a pure translation. 
 
-    Architecture?: Socket---RecievesData(Bytes)---> ProtcolTranslation--(TranslatedMsg)--> HandleOperations -->RaftNodes.
 
-    Keep protcol as a pure translation helper. 
-
-    TODO: Write translation rules. 
-          SetUp recieve data constraints.
-        
-
-    Fields              Size
-    ---------------------------------
-    SenderID:              4 Bits
-    Opcode:             4 bits
+    Fields              Size (Total size will be Mandatory Header 4 bytes + OpCodeDefinedSize)
+    -----------------------------------------------------------------------------------------
+    Opcode:             4 bits - Lower 4 bits of 1st byte
+    SenderID:           4 Bits - Upper 4 bits of 1st byte
     Term:               24 bits (3bytes)
     Payload:            Opcode-Defined
     
@@ -29,12 +23,11 @@
         - Send HeartBeat : 0010     ; Leader only* sends a heartbeat to followers (with term?)
     ------------------------------------------------------------
 
-
     Format Payload
     ------------------------
         RequestVote:
-            term
-            candidateId
+            term - May be redundant as the term is sent in the headers.
+            candidateId - Same as above.
         
         VoteResponse:
             term
@@ -44,28 +37,24 @@
             term
         
     -----------------------
-    #1 + 3 + payLoad = Buffer Size: 4bytes + payload
-
-    #Buffer Read from right to left:
-    #Little Endian Format
-
-    #All machines understand 8 bits so 1 byte is mandatory (8 bits)
-
-    #We can do bit packing
-    #2 Bytes (Subject to change)
-    #Byte1 : 00000000; Lower 4 bits - Sender Node,  upper 4 Bits - OpCode
-    #Byte 2-4: 00000000; Term
-    #Byte 5+?; 00000000; PayLoad OpCode Defined
-    
 */
+
+
 struct RaftMessage {
-    std::string operation;
-    uint32_t payload;
+    std::string opcode; //4 Bits
+    uint8_t sender; //4 Bits
+    uint8_t term[3]; // 24 bits
+    
+};
+
+enum bitWidth {
+    SENDER = 4,
+    OPCODE = 4
 };
 
 class Protocol{
     private:
-        const int BUFFER_SIZE = 16; //May be subject to change.
+        //const int BUFFER_SIZE = 16; //May be subject to change.
 
         std::unordered_map<uint8_t, std::string> bytesToOp = {
             {0, "requestVote"},
@@ -77,10 +66,13 @@ class Protocol{
             {"voteResponse", 1},
             {"sendHeartBeat", 2}
         };
+        
+        uint8_t extractBits(uint8_t, bitWidth amnt);
 
+        
     public:
         Protocol();
-        RaftMessage pack(char data[]);
-        uint32_t unpack(RaftMessage& msg);
+        RaftMessage unpack(uint8_t data[]);
+        uint32_t pack(RaftMessage& msg);
         ~Protocol();
 };
