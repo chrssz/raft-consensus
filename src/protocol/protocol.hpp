@@ -2,6 +2,7 @@
 #include <unordered_map>
 #include <cstdint>
 #include <string>
+#include "payload.hpp"
 /*
     Protocols are the defined rules for what type of data our raft nodse can receive.
 
@@ -44,12 +45,17 @@ struct RaftMessage {
     std::string opcode; //4 Bits
     uint8_t sender; //4 Bits
     uint8_t term[3]; // 24 bits
-    
+    std::unique_ptr<PayLoad> payload;
 };
 
+enum class OpCode : uint8_t {
+    RequestVote = 0,
+    VoteResponse = 1,
+    HeartBeat = 2
+};
 enum bitWidth {
-    SENDER = 4,
-    OPCODE = 4
+    OPCODE = 4,
+    SENDER = 4
 };
 
 class Protocol{
@@ -72,7 +78,7 @@ class Protocol{
         
     public:
         Protocol();
-        RaftMessage unpack(uint8_t data[]);
+        RaftMessage unpack(uint8_t* data, int size);
         uint32_t pack(RaftMessage& msg);
         ~Protocol();
 };

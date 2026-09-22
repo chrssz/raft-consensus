@@ -1,6 +1,6 @@
 #pragma once
 
-#include "src/raftnode/raftnode.hpp" 
+#include "../raftnode/raftnode.hpp" 
 #include <thread>
 
 class Cluster{
