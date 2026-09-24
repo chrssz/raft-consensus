@@ -27,11 +27,9 @@
     Format Payload
     ------------------------
         RequestVote:
-            term - May be redundant as the term is sent in the headers.
             candidateId - Same as above.
-        
+            
         VoteResponse:
-            term
             voteGranted
         
         Send HeartBeat:
@@ -40,12 +38,15 @@
     -----------------------
 */
 
-
 struct RaftMessage {
     std::string opcode; //4 Bits
     uint8_t sender; //4 Bits
     uint8_t term[3]; // 24 bits
+    
+    uint32_t payLoadSize;
+
     std::unique_ptr<PayLoad> payload;
+    
 };
 
 enum class OpCode : uint8_t {
@@ -60,8 +61,6 @@ enum bitWidth {
 
 class Protocol{
     private:
-        //const int BUFFER_SIZE = 16; //May be subject to change.
-
         std::unordered_map<uint8_t, std::string> bytesToOp = {
             {0, "requestVote"},
             {1, "voteResponse"},

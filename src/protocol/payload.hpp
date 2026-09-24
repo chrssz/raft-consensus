@@ -2,18 +2,24 @@
 #include <memory>
 
 struct PayLoad {
-
-};
-struct RequestVotePayLoad : PayLoad {
-
+    virtual ~PayLoad() = default;
 };
 
-struct VoteResponse : PayLoad {
-
-};
-
-struct heartbeat : PayLoad {
+struct RequestVotePayLoad : public PayLoad {
     
+};
+
+struct VoteResponse : public PayLoad {
+    bool voteGranted;
+    
+};
+
+struct heartbeat : public PayLoad {
+    
+};
+
+enum PAYLOAD_SIZE {
+    VoteResponseSize = 1
 };
 
 class PayLoadDecode {
