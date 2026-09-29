@@ -39,10 +39,10 @@
 */
 
 struct RaftMessage {
-    std::string opcode; //4 Bits
-    uint8_t sender; //4 Bits
+    std::string opcode; //4 Bits  <--- Packed 
+    uint8_t sender; //4 Bits <----Packed with above
     uint8_t term[3]; // 24 bits
-    
+    // -------------------------- 5 bytes above.
     uint32_t payLoadSize;
 
     std::unique_ptr<PayLoad> payload;

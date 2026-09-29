@@ -7,6 +7,7 @@
 #include <string>
 #include <stdint.h>
 #include <vector>
+#include "../protocol/protocol.hpp"
 //This code was imported directly from my cpp-load-balancer project.
 //Needed to import so I can rewrite the protocols for recv and send.
 
@@ -16,10 +17,11 @@ class SocketWrapper {
     protected:
         SOCKET createSocket();
         SOCKET s;
-
+        void setNonBlocking();
     public:
         SocketWrapper();
         SocketWrapper(SOCKET created);
+        
         SOCKET getSocket();
         virtual ~SocketWrapper();
 };
@@ -43,7 +45,7 @@ class ConnectedSocket : public SocketWrapper {
     public:
         ConnectedSocket();
         ConnectedSocket(SOCKET created);
-        void snd(std::vector<int8_t> &data);
-        std::vector<int8_t> receive();
+        void snd(std::vector<uint8_t> &data);
+        std::vector<uint8_t> receive();
         ~ConnectedSocket();
 };
