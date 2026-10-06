@@ -41,9 +41,10 @@
 struct RaftMessage {
     std::string opcode; //4 Bits  <--- Packed 
     uint8_t sender; //4 Bits <----Packed with above
-    uint8_t term[3]; // 24 bits
+    uint32_t term; //32 bits = 4bytes
+    
     // -------------------------- 5 bytes above.
-    uint32_t payLoadSize;
+    uint32_t payLoadSize; //5th byte
 
     std::unique_ptr<PayLoad> payload;
     
@@ -54,7 +55,7 @@ enum class OpCode : uint8_t {
     VoteResponse = 1,
     HeartBeat = 2
 };
-enum bitWidth {
+enum bitWidth : int {
     OPCODE = 4,
     SENDER = 4
 };
@@ -78,6 +79,6 @@ class Protocol{
     public:
         Protocol();
         RaftMessage unpack(uint8_t* data, int size);
-        uint32_t pack(RaftMessage& msg);
+        std::vector<uint8_t> pack(RaftMessage& msg);
         ~Protocol();
 };

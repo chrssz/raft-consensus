@@ -33,7 +33,7 @@ std::vector<uint8_t> ConnectedSocket::receive(){
     int HEADER_SIZE = 8; //8 Bytes
     int bytesRecv = 0;
 
-    while(bytesRecv < 4){
+    while(bytesRecv < 8){
         char dataGotten;
         int dataSize = recv(
             this->s,
@@ -42,7 +42,7 @@ std::vector<uint8_t> ConnectedSocket::receive(){
             0
         );
     }
-
+    
     //Payload size resides at BytesRecv[4]// Payload size is a 32 bit integer. 4 bytes
     //[ByesRecv[4], BytesRecv[8]]
     //TODO WORK ON RECIEVING PAYLOAD,  THINK ABOUT SOME EVENT DRIVEN MODEL SO A RECIEV FUNC KNOWS WHEN DATA IS READY.
