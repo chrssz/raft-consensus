@@ -1,5 +1,5 @@
 #pragma once
-#include "../../../cpp-load-balancer/src/socket/socket.hpp" //Imported from previous cpp-load-balancer-project
+#include "../socket/socket.hpp" //Imported from previous cpp-load-balancer-project
 //Socket.hpp also already imports winsock for us.
 
 #include <vector>

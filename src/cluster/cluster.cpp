@@ -1,6 +1,8 @@
-#include "src/raftnode/raftnode.hpp" 
-#include <thread>
-SOCKET connectTo(const std::string PORT){
+#include "cluster.hpp"
+
+Cluster::Cluster(int size) : CLUSTER_SIZE(size){};
+
+SOCKET Cluster::connectTo(const std::string PORT){
     SOCKET ConnectSocket;
     ConnectSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if(ConnectSocket == INVALID_SOCKET){
@@ -23,8 +25,7 @@ SOCKET connectTo(const std::string PORT){
 
     return ConnectSocket;
 }
-
-int main(){
+void Cluster::start(){
     initWinSock();
     u_int const CLUSTER_SIZE = 4;
     std::string const PORTS[] = {"80", "81", "82", "83"};
@@ -38,18 +39,7 @@ int main(){
         cluster.emplace_back(RaftNode());
     }
     
-    //Connect the netwrok
-    for(int i = 0; i < CLUSTER_SIZE; ++i){
-        
-        for(int j = i + 1; j < CLUSTER_SIZE; ++j){
-            SOCKET connectSock = connectTo(cluster[j].getPort());
-            if(connectSock != INVALID_SOCKET){
-                cluster[i].addConnection(connectSock);
-
-            }
-        }
-    }
-    
+    //Start the nodes.
     for(int i = 0; i < CLUSTER_SIZE; i ++){
          threads.emplace_back(
             std::jthread([&cluster, &PORTS, i](){
@@ -57,5 +47,24 @@ int main(){
             })
         );
     }
-    WSACleanup();
+    
+    //Connect the netwrok
+    for(int i = 0; i < CLUSTER_SIZE; ++i){
+        
+        for(int j = i + 1; j < CLUSTER_SIZE; ++j){
+            SOCKET connectSock = connectTo(cluster[j].getPort());
+            if(connectSock != INVALID_SOCKET){
+                cluster[i].addConnection(connectSock);
+            }
+        }
+    }
+    
+    //Wait for all threads to complete
+    for(auto& t : threads){
+        t.join();
+    }
 }
+Cluster::~Cluster(){
+
+    WSACleanup();
+};
