@@ -1,7 +1,9 @@
 #pragma once
 #include <memory>
-
+#include <vector>
+#include <string>
 struct PayLoad {
+    std::string type;
     virtual ~PayLoad() = default;
 };
 
@@ -30,5 +32,16 @@ class PayLoadDecode {
         std::unique_ptr<PayLoad> decodeVoteResponse(const uint8_t* data, int size);
         std::unique_ptr<PayLoad> heartbeat(const uint8_t* data, int size);
         
+
         ~PayLoadDecode();
+};
+
+class PayLoadEncode {
+   
+    public:
+        PayLoadEncode();
+
+        std::vector<uint8_t> encodeVoteResponse(const VoteResponse& obj);
+        
+        ~PayLoadEncode();
 };
