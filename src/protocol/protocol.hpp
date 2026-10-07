@@ -14,6 +14,7 @@
     Opcode:             4 bits - Lower 4 bits of 1st byte
     SenderID:           4 Bits - Upper 4 bits of 1st byte
     Term:               32 bits (4bytes)
+    PayLoadSize:        32 bits(4 bytes)
     Payload:            Opcode-Defined
     
     ---------------------------------
