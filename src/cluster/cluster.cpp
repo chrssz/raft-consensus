@@ -36,7 +36,7 @@ void Cluster::start(){
     threads.reserve(CLUSTER_SIZE);
     
     for(int i = 0; i < CLUSTER_SIZE; ++i) {
-        cluster.emplace_back(RaftNode());
+        cluster.emplace_back(RaftNode(i));
     }
     
     //Start the nodes.

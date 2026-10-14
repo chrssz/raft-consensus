@@ -5,8 +5,8 @@
 #include <ws2tcpip.h>
 #include <windows.h>
 #include <string>
-#include <stdint.h>
 #include <vector>
+#include <cstdint>
 #include "../protocol/protocol.hpp"
 //This code was imported directly from my cpp-load-balancer project.
 //Needed to import so I can rewrite the protocols for recv and send.
@@ -42,6 +42,8 @@ class ListeningSocket : public SocketWrapper {
 
 
 class ConnectedSocket : public SocketWrapper {
+    private:
+        std::vector<uint8_t> buffer;
     public:
         ConnectedSocket();
         ConnectedSocket(SOCKET created);

@@ -28,7 +28,7 @@ std::vector<uint8_t> ConnectedSocket::receive(){
     
     std::vector<uint8_t> output;
     uint8_t buffer[4096]; //512 Bytes absolute maximum
-
+    
     //Extract headers
     int HEADER_SIZE = 8; //8 Bytes
     int bytesRecv = 0;

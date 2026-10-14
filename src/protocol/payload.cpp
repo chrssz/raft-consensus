@@ -1,6 +1,5 @@
 #include "payload.hpp"
 
-// ** Decoder ** //
 PayLoadDecode::PayLoadDecode(){
 
 }
@@ -20,7 +19,8 @@ PayLoadDecode::~PayLoadDecode(){
 
 }
 
-// ** Encoder ** //
+
+
 
 PayLoadEncode::PayLoadEncode(){
 

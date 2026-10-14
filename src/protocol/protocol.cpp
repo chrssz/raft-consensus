@@ -87,6 +87,7 @@ std::vector<uint8_t> Protocol::pack(RaftMessage& msg){
     std::vector<uint8_t> pData;
     switch(static_cast<OpCode>(opToBytes[msg.opcode])){
         case OpCode::RequestVote:{
+
             break;
         }
 
@@ -98,15 +99,13 @@ std::vector<uint8_t> Protocol::pack(RaftMessage& msg){
             );
 
             break;
-
         }
 
         case OpCode::HeartBeat:{
             break;
         }
     }
-
-
+    
     for(int i = 0; i < pData.size(); ++i){
         data.push_back(pData[i]);
     }
