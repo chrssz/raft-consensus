@@ -1,5 +1,5 @@
 #include "raftnode.hpp"
-
+#include "protocol.hpp"
 RaftNode::RaftNode(int id) : id(id){
     
 }
@@ -7,10 +7,30 @@ RaftNode::RaftNode(int id) : id(id){
 std::string RaftNode::getPort(){
     return this->portNumber;
 }
-void RaftNode::pollSockets(std::vector<WSAPOLLFD> &poll){
+void RaftNode::pollSockets(std::vector<WSAPOLLFD> &fdArray){
+
     //Polling
-    for(int i =0; i < poll.size(); ++i){
-        
+    for(int i = 1; i < fdArray.size(); ++i){
+        int conn_i = i - 1;
+        if(fdArray[i].revents & (POLLHUP | POLLERR | POLLNVAL)){
+            conns.erase(conns.begin() + conn_i);
+            continue;
+        }
+
+        if(fdArray[i].revents & POLLRDNORM){
+
+            int response = this->conns[conn_i].receive();
+            if(response == CON_DROPPED){
+                conns.erase(conns.begin() + conn_i);
+                continue;
+            }
+
+            if(response == DATA_READY){
+                //We have all the data we need
+                Protocol protocol;
+            }
+
+        }
     }
     
 }
@@ -23,19 +43,29 @@ void RaftNode::start(std::string port){
         return;
     }   
     
-    WSAPOLLFD poll_fd{};
-    std::vector<WSAPOLLFD> fdArray; 
+    WSAPOLLFD listen_poll{};
     
-    poll_fd.fd = listen.getSocket();
-    poll_fd.events = POLLRDNORM;
-    poll_fd.revents = 0;
+    listen_poll.fd = listen.getSocket();
+    listen_poll.events = POLLRDNORM;
+    listen_poll.revents = 0;
 
-    std::vector<WSAPOLLFD> fdArray;
-    fdArray.push_back(poll_fd);
+    
 
     int timeoutMS = 5000;
 
     while(true){
+        //Because sockets can disconnect, and I want to maintain RAII. Rebuild fdArray everyTime.
+        std::vector<WSAPOLLFD> fdArray;
+        fdArray.push_back(listen_poll);
+        for(int i = 0; i < this->conns.size(); ++i){
+            WSAPOLLFD poll_fdNew{};
+            poll_fdNew.fd = this->conns[i].getSocket();
+            poll_fdNew.events = POLLRDNORM;
+            poll_fdNew.revents = 0;
+            
+            fdArray.push_back(poll_fdNew);
+        }
+
         //Thread waits here for connection
         int event = WSAPoll(fdArray.data(), static_cast<ULONG>(fdArray.size()), timeoutMS);
         
@@ -51,14 +81,8 @@ void RaftNode::start(std::string port){
         if(fdArray[0].revents & POLLRDNORM){
             SOCKET new_conn = accept(listen.getSocket(), nullptr, nullptr);
             this->conns.emplace_back(ConnectedSocket(new_conn));
-            WSAPOLLFD poll_fdNew{};
-            poll_fd.fd = new_conn;
-            poll_fd.events = POLLRDNORM;
-            poll_fd.revents = 0;
-
-            fdArray.push_back(poll_fdNew);
         }
-
+        
         pollSockets(fdArray);
     }
 }

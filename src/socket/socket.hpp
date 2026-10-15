@@ -48,6 +48,6 @@ class ConnectedSocket : public SocketWrapper {
         ConnectedSocket();
         ConnectedSocket(SOCKET created);
         void snd(std::vector<uint8_t> &data);
-        std::vector<uint8_t> receive();
+        int receive();
         ~ConnectedSocket();
 };

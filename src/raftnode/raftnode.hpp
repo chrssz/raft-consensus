@@ -3,6 +3,14 @@
 //Socket.hpp also already imports winsock for us.
 #include <iostream>
 #include <vector>
+
+enum SOCKET_STATUS : int {
+    CON_DROPPED = -1,
+    CON_GOOD = 1,
+    DATA_READY = 2
+};
+
+
 class RaftNode{
     private:
         int id;

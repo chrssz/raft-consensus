@@ -9,14 +9,14 @@
     Keep protcol as a pure translation. 
 
 
-    Fields              Size (Total size will be Mandatory Header 4 bytes + OpCodeDefinedSize)
+    Fields              Size (Total size will be Mandatory Header 9 bytes + OpCodeDefinedSize)
     -----------------------------------------------------------------------------------------
-    Opcode:             4 bits - Lower 4 bits of 1st byte
-    SenderID:           4 Bits - Upper 4 bits of 1st byte
-    Term:               24 bits (3bytes)
-    Payload:            Opcode-Defined
-    
+    Opcode | SenderID       8 bits (1Byte) - Lower 4 bits of 1st byte OPCODE ; Upper 4 of byte SENDER ID
+    Term:                   32 bits(4 bytes)
+    PayloadSize in bytes:   32 bits(4 bytes)     
+    Payload:                Opcode-Defined
     ---------------------------------
+
     Opcodes(Rough Draft):
     ------------------------------------------------------------
         - RequestVote : 0000        ; Node tries to become a leader (Requires payLoad)
@@ -24,29 +24,16 @@
         - Send HeartBeat : 0010     ; Leader only* sends a heartbeat to followers (with term?)
     ------------------------------------------------------------
 
-    Format Payload
-    ------------------------
-        RequestVote:
-            candidateId - Same as above.
-            
-        VoteResponse:
-            voteGranted
-        
-        Send HeartBeat:
-            term
-        
-    -----------------------
 */
 
 struct RaftMessage {
-    std::string opcode; //4 Bits  <--- Packed 
-    uint8_t sender; //4 Bits <----Packed with above
-    uint32_t term; //32 bits = 4bytes
+    std::string opcode; //data[0]
+    uint8_t sender; //data[0]
+    uint32_t term; //data[1..4]
     
-    // -------------------------- 5 bytes above.
-    uint32_t payLoadSize; //5th byte; Payload size represents byte size
+    uint32_t payLoadSize; //data[5...8]
 
-    std::unique_ptr<PayLoad> payload;
+    std::unique_ptr<PayLoad> payload; //data[9 ...]
     
 };
 
@@ -61,7 +48,7 @@ enum bitWidth : int {
     LAST_EIGHT = 8
 };
 
-class Protocol{
+class Protocol {
     private:
         uint8_t extractBits(uint8_t, bitWidth amnt);
 
