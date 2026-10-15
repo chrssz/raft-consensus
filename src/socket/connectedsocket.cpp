@@ -6,8 +6,9 @@ ConnectedSocket::ConnectedSocket(){
 ConnectedSocket::ConnectedSocket(SOCKET created) : SocketWrapper(created) {
     this->setNonBlocking();
 }
-void ConnectedSocket::snd(std::vector<uint8_t> &data){
-    //Sends data to this->s
+
+std::vector<uint8_t>& ConnectedSocket::getBuffer() {
+    return this->buffer;
 }
 
 /*  -1: Closed Socket, 1: socket is good, but buffer data is not ready. 2: buffer data is ready to be extracted*/
@@ -45,6 +46,23 @@ int ConnectedSocket::receive(){
 
     return 1;
 }
+
+void ConnectedSocket::clearBuffer(int end){
+    //end is inclusive.
+    if(end + 1 > buffer.size()){
+        std::cout << "Buffer not cleared. Given end is larger than buffer size";
+        return;
+    }
+    
+    auto begin = this->buffer.begin();
+    this->buffer.erase(begin, begin + end + 1);
+
+}
+
+void ConnectedSocket::snd(std::vector<uint8_t> &data){
+    //Sends data to this->s
+}
+
 
 ConnectedSocket::~ConnectedSocket(){
 }

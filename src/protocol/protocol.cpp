@@ -33,9 +33,9 @@ RaftMessage Protocol::unpack(uint8_t* data, int size){
         shiftAmnt += 8;
     }
     
-    //Payload data resides in data [9] .... [n]
-    int n = size - 9;
-
+    //Payload data resides in data [9] .... [payloadSize]
+    int n = msg.payLoadSize;
+    //Payload data ends a 9 + msg.payLoadSize 
     PayLoadDecode decoder;
     std::unique_ptr<PayLoad> payLoad;
     //Payload will be here.

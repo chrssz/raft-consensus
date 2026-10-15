@@ -1,5 +1,5 @@
 #include "raftnode.hpp"
-#include "protocol.hpp"
+#include "../protocol/protocol.hpp"
 RaftNode::RaftNode(int id) : id(id){
     
 }
@@ -26,8 +26,17 @@ void RaftNode::pollSockets(std::vector<WSAPOLLFD> &fdArray){
             }
 
             if(response == DATA_READY){
+                int HEADER_SIZE = 9;
                 //We have all the data we need
                 Protocol protocol;
+                std::vector<uint8_t>& buffer = this->conns[i].getBuffer();
+                RaftMessage msg = protocol.unpack(buffer.data(), buffer.size());
+                
+                int end = static_cast<int>(msg.payLoadSize);
+                //Clear buffer from [0, 9 + end]
+                this->conns[i].clearBuffer(HEADER_SIZE);
+
+                //Handle the operation.
             }
 
         }

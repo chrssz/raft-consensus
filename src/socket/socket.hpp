@@ -47,7 +47,10 @@ class ConnectedSocket : public SocketWrapper {
     public:
         ConnectedSocket();
         ConnectedSocket(SOCKET created);
-        void snd(std::vector<uint8_t> &data);
+        std::vector<uint8_t>& getBuffer();
         int receive();
+        
+        void clearBuffer(int end);
+        void snd(std::vector<uint8_t> &data);
         ~ConnectedSocket();
 };
