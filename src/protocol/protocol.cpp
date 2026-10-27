@@ -1,5 +1,14 @@
 #include "protocol.hpp"
 
+std::ostream& operator<<(std::ostream& os, const RaftMessage& obj){
+    os << "Opcode: " << obj.opcode << std::endl;
+    os << "Sender: " << obj.sender << std::endl;
+    os << "Term: " << obj.term << std::endl;
+    os << "Payload Size: " << obj.payLoadSize << std::endl;
+
+    return os;
+}
+
 Protocol::Protocol(){}
 uint8_t Protocol::extractBits(uint8_t data, bitWidth amnt){
     return data & ((1 << amnt) - 1);
@@ -36,25 +45,16 @@ RaftMessage Protocol::unpack(uint8_t* data, int size){
     //Payload data resides in data [9] .... [payloadSize]
     int n = msg.payLoadSize;
     //Payload data ends a 9 + msg.payLoadSize 
-    PayLoadDecode decoder;
+    PayLoadDecode decode;
     std::unique_ptr<PayLoad> payLoad;
     //Payload will be here.
     switch (static_cast<OpCode>(opCodeNumeric)){
-        case OpCode::RequestVote:{
+        case OpCode::AppendEntries:{
+            payLoad = decode.appendEntries(data + 9, msg.payLoadSize);
             break;
         }
 
-        case OpCode::VoteResponse:{
-            payLoad = std::move(decoder.decodeRequestVote(data + 9, n));
-            break;
-        }
-    
-
-        case OpCode::HeartBeat:{
-            break;
-        }
-
-    }
+    }   
     
     msg.payload = std::move(payLoad);
 
@@ -68,40 +68,37 @@ std::vector<uint8_t> Protocol::pack(RaftMessage& msg){
     opCodeSender |= (msg.sender << SENDER);
     opCodeSender |= (this->opToBytes[msg.opcode]);
     
+    data.push_back(opCodeSender);
 
-    //4 Bytes for term
-    std::vector<uint8_t> termData;
-    
-    
+    //4 Bytes for term and payload size
+    std::vector<uint8_t> termData = {0, 0, 0, 0};
     std::vector<uint8_t> payloadSizeData = {0, 0, 0, 0};
 
-    //Payload size  field is 32 bits; need 4 bytes
     uint32_t mutable_payloadSizeVar = msg.payLoadSize;
+    uint32_t mutable_termSizeVar = msg.term;
+
     for(int i = 0; i < 4; ++i){
         payloadSizeData[payloadSizeData.size() - i - 1] = static_cast<uint8_t>(mutable_payloadSizeVar);
+        termData[termData.size() - i - 1] = static_cast<uint8_t>(mutable_termSizeVar);
+
         mutable_payloadSizeVar >>= LAST_EIGHT;
+        mutable_termSizeVar >>= LAST_EIGHT;
+    }
+    for(int i = 0; i < termData.size(); ++i){
+        data.push_back(termData[i]);
+    }
+    
+    for(int i = 0; i < payloadSizeData.size(); ++i){
+        data.push_back(payloadSizeData[i]);
         
     }
+
     //Pack payload data.
     PayLoadEncode encoder;
     std::vector<uint8_t> pData;
     switch(static_cast<OpCode>(opToBytes[msg.opcode])){
-        case OpCode::RequestVote:{
-
-            break;
-        }
-
-        case OpCode::VoteResponse:{
-            auto* payloadObject = dynamic_cast<VoteResponse*>(msg.payload.get());
-
-            pData = encoder.encodeVoteResponse(
-                *payloadObject
-            );
-
-            break;
-        }
-
-        case OpCode::HeartBeat:{
+        case OpCode::AppendEntries:{
+            pData = encoder.appendEntries(dynamic_cast<AppendEntries&>(*msg.payload));
             break;
         }
     }

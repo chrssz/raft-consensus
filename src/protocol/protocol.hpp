@@ -1,4 +1,5 @@
 #pragma once
+#include <iostream>
 #include <unordered_map>
 #include <cstdint>
 #include <string>
@@ -21,12 +22,14 @@
     ------------------------------------------------------------
         - RequestVote : 0000        ; Node tries to become a leader (Requires payLoad)
         - Vote Response : 0001      ; Sends back binary 1 for vote given, 0 for vote denied
-        - Send HeartBeat : 0010     ; Leader only* sends a heartbeat to followers (with term?)
+        - AppendEntries / Send HeartBeat : 0010     ; Leader only* sends a heartbeat to followers (with term?)
     ------------------------------------------------------------
 
 */
 
 struct RaftMessage {
+    friend std::ostream& operator <<(std::ostream& os, const RaftMessage& obj);
+    
     std::string opcode; //data[0]
     uint8_t sender; //data[0]
     uint32_t term; //data[1..4]
@@ -37,10 +40,11 @@ struct RaftMessage {
     
 };
 
+
 enum class OpCode : uint8_t {
     RequestVote = 0,
     VoteResponse = 1,
-    HeartBeat = 2
+    AppendEntries = 2
 };
 enum bitWidth : int {
     OPCODE = 4,
@@ -55,12 +59,12 @@ class Protocol {
         std::unordered_map<uint8_t, std::string> bytesToOp = {
             {0, "requestVote"},
             {1, "voteResponse"},
-            {2, "sendHeartBeat"}
+            {2, "AppendEntries"}
         };
         std::unordered_map<std::string, uint8_t> opToBytes = {
             {"requestVote", 0},
             {"voteResponse", 1},
-            {"sendHeartBeat", 2}
+            {"AppendEntries", 2}
         };
 
     public:

@@ -43,14 +43,19 @@ class ListeningSocket : public SocketWrapper {
 
 class ConnectedSocket : public SocketWrapper {
     private:
-        std::vector<uint8_t> buffer;
+        std::vector<uint8_t> readBuffer;
+        std::vector<uint8_t> writeBuffer;
+
     public:
         ConnectedSocket();
         ConnectedSocket(SOCKET created);
-        std::vector<uint8_t>& getBuffer();
+        std::vector<uint8_t>& getReadBuffer();
+
         int receive();
-        
-        void clearBuffer(int end);
-        void snd(std::vector<uint8_t> &data);
+        int sndBuffer();
+        int snd(std::vector<uint8_t> &data);
+
+        void clearBuffer(int end, std::vector<uint8_t>& buffer);
+
         ~ConnectedSocket();
 };
