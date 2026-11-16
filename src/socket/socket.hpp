@@ -54,7 +54,7 @@ class ConnectedSocket : public SocketWrapper {
         int receive();
         int sndBuffer();
         int snd(std::vector<uint8_t> &data);
-
+        int sndBuffer();
         void clearBuffer(int end, std::vector<uint8_t>& buffer);
 
         ~ConnectedSocket();

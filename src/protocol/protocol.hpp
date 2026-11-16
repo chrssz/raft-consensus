@@ -44,8 +44,10 @@ struct RaftMessage {
 enum class OpCode : uint8_t {
     RequestVote = 0,
     VoteResponse = 1,
-    AppendEntries = 2
+    AppendEntries = 2,
+    EntriesResponse = 3
 };
+
 enum bitWidth : int {
     OPCODE = 4,
     SENDER = 4,
@@ -59,14 +61,16 @@ class Protocol {
         std::unordered_map<uint8_t, std::string> bytesToOp = {
             {0, "requestVote"},
             {1, "voteResponse"},
-            {2, "AppendEntries"}
+            {2, "AppendEntries"},
+            {3, "EntiresResponse"}
         };
         std::unordered_map<std::string, uint8_t> opToBytes = {
             {"requestVote", 0},
             {"voteResponse", 1},
-            {"AppendEntries", 2}
+            {"AppendEntries", 2},
+            {"EntiresResponse", 3}
         };
-
+        
     public:
         Protocol();
         RaftMessage unpack(uint8_t* data, int size);

@@ -12,6 +12,18 @@ void RaftNode::addConnection(SOCKET newConn){
     this->conns.emplace_back(ConnectedSocket(newConn));
 }
 
+void RaftNode::handleMessage(const RaftMessage& msg){
+    if(msg.opcode == "AppendEntries"){
+        //Append Entries is always invoked by leader.
+
+        ///Respond with term, and success value.
+    }
+
+    //Request vote is invoked by candidates (Followers)
+
+    
+}
+
 void RaftNode::pollSockets(std::vector<WSAPOLLFD> &fdArray, short revent){
     //Polling
     for(int i = 1; i < fdArray.size(); ++i){
@@ -23,10 +35,11 @@ void RaftNode::pollSockets(std::vector<WSAPOLLFD> &fdArray, short revent){
 
         if(fdArray[i].revents & revent){
             if(revent == POLLWRNORM){
-                //Send rest of buffer data here; Handle message is responsible for snd init response.
-                //fdArray[i].sendBuffer()
+                //Send rest of buffer data here
+                conns[i].sndBuffer();
                 continue;
             }
+
             int response = this->conns[conn_i].receive();
             
             if(response == CON_DROPPED){
@@ -48,7 +61,7 @@ void RaftNode::pollSockets(std::vector<WSAPOLLFD> &fdArray, short revent){
                 
                 std::cout << msg << std::endl;
                 //Handle the message.
-                //this->handleMessage(msg);
+                this->handleMessage(msg);
                 
             }
 

@@ -59,11 +59,34 @@ int ConnectedSocket::snd(std::vector<uint8_t> &data){
         return -1;
     }
     
+    //Put the rest of the unsent data into the write buffer
+    for(int i = res; i < data.size(); ++i){
+        this->writeBuffer.push_back(data[i]);
+    }
+
     return 1;
 }
 
+int ConnectedSocket::sndBuffer(){
+    //Sends data to this->s
+    int res = send(this->s, 
+                reinterpret_cast<const char*>(this->writeBuffer.data()), 
+                static_cast<int>(this->writeBuffer.size()), 
+                0);
+    
+    if(res == SOCKET_ERROR){
+        std::cout << "Connection Lost. Error: " << WSAGetLastError() << std::endl;
+        return -1;
+    }
+
+    this->clearBuffer(res, this->writeBuffer);
+
+    return 1;
+}
+
+/* End is inclusive */
 void ConnectedSocket::clearBuffer(int end, std::vector<uint8_t>& buffer){
-    //end is inclusive.
+    
     if(end + 1 > buffer.size()){
         std::cout << "Buffer not cleared. Given end is larger than buffer size";
         return;
