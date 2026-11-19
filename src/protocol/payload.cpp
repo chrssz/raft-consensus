@@ -7,16 +7,22 @@ PayLoadDecode::PayLoadDecode(){
 std::unique_ptr<PayLoad> PayLoadDecode::appendEntries(const uint8_t* data, int size){
     AppendEntries msg;
     msg.type = "AppendEntries";
-
+    
     return std::make_unique<AppendEntries>(msg);
 }
 
-PayLoadDecode::~PayLoadDecode(){
+std::unique_ptr<PayLoad> PayLoadDecode::entriesResponse(const uint8_t* data, int size){
+    EntriesResponse msg;
+    msg.type = "EntriesResponse";
+    
+    return std::make_unique<EntriesResponse>(msg);
+}
 
+PayLoadDecode::~PayLoadDecode(){
 }
 
 
-/* # ---------------------ENCODE-----------------------#*/
+/* # ---------------------ENCODE into bytes-----------------------#*/
 
 PayLoadEncode::PayLoadEncode(){
 

@@ -12,16 +12,35 @@ void RaftNode::addConnection(SOCKET newConn){
     this->conns.emplace_back(ConnectedSocket(newConn));
 }
 
-void RaftNode::handleMessage(const RaftMessage& msg){
+void RaftNode::handleMessage(const RaftMessage& msg, ConnectedSocket& s){
+    Protocol protocol;
+    //Comments left are from the raft.github.io
+
     if(msg.opcode == "AppendEntries"){
         //Append Entries is always invoked by leader.
 
+        //Do stuff here..
+
+
         ///Respond with term, and success value.
+        RaftMessage response;
+        
+        //s.snd(data)
+
+    }
+    else if(msg.opcode == "EntriesResponse"){
+        
+    } 
+    else if(msg.opcode == "RequestVote"){
+        //Request vote is invoked by candidates to gather votes (Followers)
+    }
+    else if(msg.opcode == "VoteResponse"){
+        
+    } 
+    else{
+        std::cout << "Error handling invalid opcode";
     }
 
-    //Request vote is invoked by candidates (Followers)
-
-    
 }
 
 void RaftNode::pollSockets(std::vector<WSAPOLLFD> &fdArray, short revent){
@@ -61,7 +80,7 @@ void RaftNode::pollSockets(std::vector<WSAPOLLFD> &fdArray, short revent){
                 
                 std::cout << msg << std::endl;
                 //Handle the message.
-                this->handleMessage(msg);
+                this->handleMessage(msg, this->conns[conn_i]);
                 
             }
 

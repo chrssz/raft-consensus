@@ -13,13 +13,16 @@ struct AppendEntries : public PayLoad {
     
 };
 
-
+struct EntriesResponse : public PayLoad{
+    bool success;
+};
 
 class PayLoadDecode {
     public:
         PayLoadDecode();
 
         std::unique_ptr<PayLoad> appendEntries(const uint8_t* data, int size);
+        std::unique_ptr<PayLoad> entriesResponse(const uint8_t* data, int size);
 
         ~PayLoadDecode();
 };

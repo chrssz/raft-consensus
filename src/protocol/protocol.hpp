@@ -24,7 +24,7 @@
         - Vote Response : 0001      ; Sends back binary 1 for vote given, 0 for vote denied
         - AppendEntries / Send HeartBeat : 0010     ; Leader only* sends a heartbeat to followers (with term?)
     ------------------------------------------------------------
-
+    
 */
 
 struct RaftMessage {
@@ -59,16 +59,16 @@ class Protocol {
         uint8_t extractBits(uint8_t, bitWidth amnt);
 
         std::unordered_map<uint8_t, std::string> bytesToOp = {
-            {0, "requestVote"},
-            {1, "voteResponse"},
+            {0, "RequestVote"},
+            {1, "VoteResponse"},
             {2, "AppendEntries"},
-            {3, "EntiresResponse"}
+            {3, "EntriesResponse"}
         };
         std::unordered_map<std::string, uint8_t> opToBytes = {
-            {"requestVote", 0},
-            {"voteResponse", 1},
+            {"RequestVote", 0},
+            {"VoteResponse", 1},
             {"AppendEntries", 2},
-            {"EntiresResponse", 3}
+            {"EntriesResponse", 3}
         };
         
     public:

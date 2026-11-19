@@ -24,7 +24,7 @@ class RaftNode{
         std::string getPort();
 
         void addConnection(SOCKET newConn);
-        void handleMessage(const RaftMessage& msg);
+        void handleMessage(const RaftMessage& msg, ConnectedSocket& s);
         
         void pollSockets(std::vector<WSAPOLLFD> &poll, short revent);
         void start(std::string port);
