@@ -15,13 +15,16 @@ void initWinSock(){
     }
 
 }
+
 void SocketWrapper::setNonBlocking(){
     u_long mode = 1;
     ioctlsocket(this->s, FIONBIO, &mode);
 }
+
 SOCKET SocketWrapper::createSocket() {
     return socket(AF_INET, SOCK_STREAM, 0);
 }
+
 SOCKET SocketWrapper::getSocket(){
     return this->s;
 }

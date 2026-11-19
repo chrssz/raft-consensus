@@ -13,7 +13,18 @@ add_executable(raft
     src/raftnode/raftnode.cpp
     src/protocol/payload.cpp
     src/protocol/protocol.cpp
-    src/connectionHandler/connHandle.cpp
+    src/cluster/cluster.cpp
+    
+)
+add_executable(test
+    src/tests/test.cpp
+    src/socket/socket.cpp
+    src/socket/connectedsocket.cpp
+    src/socket/listeningsocket.cpp
+    src/raftnode/raftnode.cpp
+    src/protocol/payload.cpp
+    src/protocol/protocol.cpp
+    src/cluster/cluster.cpp
 )
 
 target_include_directories(raft
@@ -21,11 +32,19 @@ target_include_directories(raft
         raftnode
         socket
         protocol
-        connectionHandler
         cluster
-    
+        tests
+)
+target_include_directories(test 
+    PRIVATE 
+        protocol
+        raftnode
+        socket
+        cluster
+        tests
 )
 
 if(WIN32)
     target_link_libraries(raft PRIVATE ws2_32)
+    target_link_libraries(test PRIVATE ws2_32)
 endif()

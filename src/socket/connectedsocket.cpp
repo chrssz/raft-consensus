@@ -6,50 +6,97 @@ ConnectedSocket::ConnectedSocket(){
 ConnectedSocket::ConnectedSocket(SOCKET created) : SocketWrapper(created) {
     this->setNonBlocking();
 }
-void ConnectedSocket::snd(std::vector<uint8_t> &data){
-    //Sends data to this->s
-    int bufferSize = static_cast<int>(data.size());
-    size_t bytesSent = 0;
 
-    while(bytesSent < bufferSize){
-        int byte = send(
-            this->s,  
-            reinterpret_cast<const char*>(data.data() + bytesSent), 
-            static_cast<int>(data.size() - bytesSent), 
-            0
-        );
+std::vector<uint8_t>& ConnectedSocket::getReadBuffer() {
+    return this->readBuffer;
+}
+
+/*  -1: Closed Socket, 1: socket is good, but buffer data is not ready. 2: buffer data is ready to be extracted*/
+int ConnectedSocket::receive(){
+    const int HEADER_SIZE = 9; //9 Bytes
+    char tempBuffer[1024];
+
+    int dataSize = recv(
+        this->s,
+        tempBuffer,
+        sizeof(tempBuffer),
+        0
+    );
+
+    if(dataSize == 0 | (dataSize == SOCKET_ERROR)){
+        std::cout << "Connection Lost. Error: " << WSAGetLastError() << std::endl;
+        return -1;
+    }
         
-        bytesSent += byte;
+    this->readBuffer.insert(this->readBuffer.end(), tempBuffer, tempBuffer + dataSize);
+    
+    //Payload
+    if(this->readBuffer.size() >= 9){
+        const uint32_t PAYLOAD_SIZE =
+            (static_cast<uint32_t>(this->readBuffer[5]) << 24) |
+            (static_cast<uint32_t>(this->readBuffer[6]) << 16) |
+            (static_cast<uint32_t>(this->readBuffer[7]) << 8)  |
+            (static_cast<uint32_t>(this->readBuffer[8]));
+
+        const int TOTAL_NEEDED = HEADER_SIZE + PAYLOAD_SIZE;
+
+        
+        return (this->readBuffer.size() >= TOTAL_NEEDED) ? 2 : 1;
     }
+
+    return 1;
 }
 
-std::vector<uint8_t> ConnectedSocket::receive(){
-    //Receive data to this ->s
+int ConnectedSocket::snd(std::vector<uint8_t> &data){
+    //Sends data to this->s
+    int res = send(this->s, 
+                reinterpret_cast<const char*>(data.data()), 
+                static_cast<int>(data.size()), 
+                0);
     
-    std::vector<uint8_t> output;
-    uint8_t buffer[4096]; //512 Bytes absolute maximum
-
-    //Extract headers
-    int HEADER_SIZE = 8; //8 Bytes
-    int bytesRecv = 0;
-
-    while(bytesRecv < 8){
-        char dataGotten;
-        int dataSize = recv(
-            this->s,
-            reinterpret_cast<char*>(buffer),
-            sizeof(buffer),
-            0
-        );
+    if(res == SOCKET_ERROR){
+        std::cout << "Connection Lost. Error: " << WSAGetLastError() << std::endl;
+        return -1;
     }
     
-    //Payload size resides at BytesRecv[4]// Payload size is a 32 bit integer. 4 bytes
-    //[ByesRecv[4], BytesRecv[8]]
-    //TODO WORK ON RECIEVING PAYLOAD,  THINK ABOUT SOME EVENT DRIVEN MODEL SO A RECIEV FUNC KNOWS WHEN DATA IS READY.
-    //Payload Here
-    
-    return output;
+    //Put the rest of the unsent data into the write buffer
+    for(int i = res; i < data.size(); ++i){
+        this->writeBuffer.push_back(data[i]);
+    }
+
+    return 1;
 }
+
+int ConnectedSocket::sndBuffer(){
+    //Sends data to this->s
+    int res = send(this->s, 
+                reinterpret_cast<const char*>(this->writeBuffer.data()), 
+                static_cast<int>(this->writeBuffer.size()), 
+                0);
+    
+    if(res == SOCKET_ERROR){
+        std::cout << "Connection Lost. Error: " << WSAGetLastError() << std::endl;
+        return -1;
+    }
+
+    this->clearBuffer(res, this->writeBuffer);
+
+    return 1;
+}
+
+/* End is inclusive */
+void ConnectedSocket::clearBuffer(int end, std::vector<uint8_t>& buffer){
+    
+    if(end + 1 > buffer.size()){
+        std::cout << "Buffer not cleared. Given end is larger than buffer size";
+        return;
+    }
+    
+    auto begin = buffer.begin();
+    buffer.erase(begin, begin + end + 1);
+    
+}
+
 
 ConnectedSocket::~ConnectedSocket(){
 }

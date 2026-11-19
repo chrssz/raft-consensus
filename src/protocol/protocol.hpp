@@ -1,4 +1,5 @@
 #pragma once
+#include <iostream>
 #include <unordered_map>
 #include <cstdint>
 #include <string>
@@ -9,74 +10,67 @@
     Keep protcol as a pure translation. 
 
 
-    Fields              Size (Total size will be Mandatory Header 4 bytes + OpCodeDefinedSize)
+    Fields              Size (Total size will be Mandatory Header 9 bytes + OpCodeDefinedSize)
     -----------------------------------------------------------------------------------------
-    Opcode:             4 bits - Lower 4 bits of 1st byte
-    SenderID:           4 Bits - Upper 4 bits of 1st byte
-    Term:               32 bits (4bytes)
-    PayLoadSize:        32 bits(4 bytes)
-    Payload:            Opcode-Defined
-    
+    Opcode | SenderID       8 bits (1Byte) - Lower 4 bits of 1st byte OPCODE ; Upper 4 of byte SENDER ID
+    Term:                   32 bits(4 bytes)
+    PayloadSize in bytes:   32 bits(4 bytes)     
+    Payload:                Opcode-Defined
     ---------------------------------
+
     Opcodes(Rough Draft):
     ------------------------------------------------------------
         - RequestVote : 0000        ; Node tries to become a leader (Requires payLoad)
         - Vote Response : 0001      ; Sends back binary 1 for vote given, 0 for vote denied
-        - Send HeartBeat : 0010     ; Leader only* sends a heartbeat to followers (with term?)
+        - AppendEntries / Send HeartBeat : 0010     ; Leader only* sends a heartbeat to followers (with term?)
     ------------------------------------------------------------
-
-    Format Payload
-    ------------------------
-        RequestVote:
-            candidateId - Same as above.
-            
-        VoteResponse:
-            voteGranted
-        
-        Send HeartBeat:
-            term
-        
-    -----------------------
+    
 */
 
 struct RaftMessage {
-    std::string opcode; //4 Bits  <--- Packed 
-    uint8_t sender; //4 Bits <----Packed with above
-    uint32_t term; //32 bits = 4bytes
+    friend std::ostream& operator <<(std::ostream& os, const RaftMessage& obj);
     
-    // -------------------------- 5 bytes above.
-    uint32_t payLoadSize; //5th byte; Payload size represents byte size
+    std::string opcode; //data[0]
+    uint8_t sender; //data[0]
+    uint32_t term; //data[1..4]
+    
+    uint32_t payLoadSize; //data[5...8]
 
-    std::unique_ptr<PayLoad> payload;
+    std::unique_ptr<PayLoad> payload; //data[9 ...]
     
 };
+
 
 enum class OpCode : uint8_t {
     RequestVote = 0,
     VoteResponse = 1,
-    HeartBeat = 2
+    AppendEntries = 2,
+    EntriesResponse = 3
 };
+
 enum bitWidth : int {
     OPCODE = 4,
     SENDER = 4,
     LAST_EIGHT = 8
 };
 
-class Protocol{
+class Protocol {
     private:
         uint8_t extractBits(uint8_t, bitWidth amnt);
 
         std::unordered_map<uint8_t, std::string> bytesToOp = {
-            {0, "requestVote"},
-            {1, "voteResponse"},
-            {2, "sendHeartBeat"}
+            {0, "RequestVote"},
+            {1, "VoteResponse"},
+            {2, "AppendEntries"},
+            {3, "EntriesResponse"}
         };
         std::unordered_map<std::string, uint8_t> opToBytes = {
-            {"requestVote", 0},
-            {"voteResponse", 1},
-            {"sendHeartBeat", 2}
+            {"RequestVote", 0},
+            {"VoteResponse", 1},
+            {"AppendEntries", 2},
+            {"EntriesResponse", 3}
         };
-
+        
     public:
         Protocol();
         RaftMessage unpack(uint8_t* data, int size);
